@@ -1,8 +1,7 @@
 #![allow(unused)]
 
-use game::Board;
-
 use crate::game::{Color, Piece};
+use game::Board;
 
 pub mod game {
 
@@ -108,7 +107,13 @@ pub mod game {
             self.squares[loc] = piece;
         }
 
-        pub fn print(&self, show_label: bool) {
+        pub fn move_square(&mut self, loc1: usize, loc2: usize) {
+            let piece = self.get_peice_at(loc1);
+            self.set_peice_at(*piece, loc2);
+            self.set_peice_at(Piece::None, loc1);
+        }
+
+        pub fn print(&self, player_color: Color, show_label: bool) {
             /*
             (these colors are reversed to look better on dark screens)
                    black   white
@@ -120,16 +125,25 @@ pub mod game {
             Knight ♘ 2658  ♞ 265E
             Pawn   ♙ 2659  ♟ 265F
              */
-            println!("\x1b[33m┌──────────────────┐\x1b[0m");
-            for r in (0..=7).rev() {
-                if show_label {
-		    print!("\x1b[33m{} \x1b[0m", r +1);
 
+            println!("\x1b[33m┌──────────────────┐\x1b[0m");
+            for r in (0..8) {
+                let r = match player_color {
+                    Color::White => 7 - r,
+                    Color::Black => r,
+                };
+
+                if show_label {
+                    print!("\x1b[33m{} \x1b[0m", r + 1);
                 } else {
                     print!("\x1b[33m│ \x1b[0m");
                 }
 
-                for f in 0..=7 {
+                for f in (0..8) {
+                    let f = match player_color {
+                        Color::White => f,
+                        Color::Black => 7 - f,
+                    };
                     let loc = r * 8 + f;
                     let piece = self.get_peice_at(loc);
                     // TODO: maybe we build a string here instead of all of these print statements
@@ -167,8 +181,10 @@ pub mod game {
                 println!("\x1b[33m │\x1b[0m");
             }
             if show_label {
-
-		println!("\x1b[33m└ a b c d e f g h ─┘\x1b[0m");
+                match player_color {
+                    Color::White => println!("\x1b[33m└ a b c d e f g h ─┘\x1b[0m"),
+                    Color::Black => println!("\x1b[33m└ h g f e d c b a ─┘\x1b[0m"),
+                }
             } else {
                 println!("\x1b[33m└──────────────────┘\x1b[0m");
             }
@@ -178,5 +194,6 @@ pub mod game {
 
 fn main() {
     let mut board = Board::new();
-    board.print(true);
+    board.move_square(sloc!("e2"), sloc!("e4"));
+    board.print(Color::White, true);
 }
